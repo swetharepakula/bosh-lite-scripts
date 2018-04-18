@@ -1,0 +1,6 @@
+- type: replace
+  path: /releases/name=diego
+  value:
+    name: diego
+    url: file:///Users/Repakula/workspace/diego-release
+    version: create

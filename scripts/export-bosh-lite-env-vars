@@ -1,0 +1,55 @@
+#!/bin/bash
+
+export PATH=$HOME/workspace/diego-release/bin:$PATH
+
+export DEPLOYMENT_DIR="$HOME/workspace/diego-team/bosh-lite-bosh-deployment"
+BBS_CRED_DIR=$DEPLOYMENT_DIR/certs/bbs
+LOCKET_CRED_DIR=$DEPLOYMENT_DIR/certs/locket
+mkdir -p $BBS_CRED_DIR
+mkdir -p $LOCKET_CRED_DIR
+
+diego_api_ip=$(bosh -e lite -d cf is --json | jq '.Tables[0].Rows[] | select(.instance[0:9]=="diego-api") | .ips' -r | head -n1)
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_bbs_client/ca \
+  > "$BBS_CRED_DIR/diego_bbs_ca.crt"
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_bbs_client/certificate \
+  > "$BBS_CRED_DIR/diego_bbs_client.crt"
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_bbs_client/private_key \
+ > "$BBS_CRED_DIR/diego_bbs_client.key"
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_locket_client/ca \
+  > "$BBS_CRED_DIR/diego_locket_ca.crt"
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_locket_client/certificate \
+  > "$BBS_CRED_DIR/diego_locket_client.crt"
+
+bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /diego_locket_client/private_key \
+  > "$BBS_CRED_DIR/diego_locket_client.key"
+
+export DIEGO_SSH_PROXY_PASSWORD=$(bosh interpolate \
+  "$DEPLOYMENT_DIR/cf-deployments-vars.yml" \
+  --path /ssh_proxy_diego_credentials)
+
+export BBS_URL=https://${diego_api_ip}:8889; \
+export BBS_SKIP_CERT_VERIFY=true
+export BBS_CERT_FILE=$BBS_CRED_DIR/diego_bbs_client.crt; \
+export BBS_KEY_FILE=$BBS_CRED_DIR/diego_bbs_client.key
+
+export LOCKET_API_LOCATION=${diego_api_ip}:8891; \
+export LOCKET_SKIP_CERT_VERIFY=true
+export LOCKET_CERT_FILE=$LOCKET_CRED_DIR/diego_locket_client.crt; \
+export LOCKET_KEY_FILE=$LOCKET_CRED_DIR/diego_locket_client.key

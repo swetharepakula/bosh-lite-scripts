@@ -1,0 +1,7 @@
+---
+- type: replace
+  path: /releases/name=diego
+  value:
+    name: diego
+    url: file:///home/pivotal/workspace/diego-release
+    version: create

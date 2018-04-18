@@ -1,0 +1,6 @@
+- type: replace
+  path: /releases/name=routing
+  value:
+    name: routing
+    url: file:///Users/Repakula/workspace/cf-release/src/routing-release
+    version: create
